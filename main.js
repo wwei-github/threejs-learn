@@ -1,16 +1,64 @@
 import * as THREE from "three";
 import gsap from "gsap";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 const Canvas = document.querySelector("canvas.webgl");
 
-const scene = new THREE.Scene();
+window.addEventListener("resize", () => {
+  size.with = window.innerWidth;
+  size.height = window.innerHeight;
+
+  camera.aspect = size.with / size.height;
+  // 更新相机的参数
+  camera.updateProjectionMatrix();
+
+  // setSize 同时设置canvas.style.width的宽高 和 canvas.width 像素的宽高 两部分
+  // 也就是 canvas 的css 大小  和  绘图的分辨率
+  renderer.setSize(size.with, size.height);
+  renderer.setPixelRatio(window.devicePixelRatio);
+});
+
+window.addEventListener("dblclick", () => {
+  if (!document.fullscreenElement) {
+    Canvas.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+});
+
 const size = {
-  with: 800,
-  height: 600,
+  with: window.innerWidth,
+  height: window.innerHeight,
 };
+
+const scene = new THREE.Scene();
+
+const renderer = new THREE.WebGLRenderer({
+  canvas: Canvas,
+});
+
+const camera = new THREE.PerspectiveCamera(
+  75,
+  size.with / size.height,
+  0.1,
+  1000
+);
+camera.position.z = 3;
+camera.position.y = 1;
+camera.position.x = 1;
+scene.add(camera);
+// camera.lookAt(boxMesh1.position);
+renderer.setSize(size.with, size.height);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.render(scene, camera);
 
 const axesHelper = new THREE.AxesHelper(2);
 scene.add(axesHelper);
+
+const control = new OrbitControls(camera, Canvas);
+control.enableDamping = true;
+control.enabled = false;
+control.listenToKeyEvents(Canvas);
 
 // const group = new THREE.Group();
 // const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -39,22 +87,6 @@ const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 const mesh = new THREE.Mesh(boxGeometry, material);
 scene.add(mesh);
 
-const camera = new THREE.PerspectiveCamera(
-  75,
-  size.with / size.height,
-  0.1,
-  1000
-);
-camera.position.z = 3;
-// camera.lookAt(boxMesh1.position);
-scene.add(camera);
-
-const renderer = new THREE.WebGLRenderer({
-  canvas: Canvas,
-});
-renderer.setSize(size.with, size.height);
-renderer.render(scene, camera);
-
 // const clock = new THREE.Clock()
 gsap.to(mesh.position, { x: 2, delay: 1, direction: 1 });
 gsap.to(mesh.position, { x: 0, delay: 2, direction: 1 });
@@ -65,6 +97,7 @@ const tick = () => {
   // mesh.rotation.z = time
   // mesh.position.x = time
   // mesh.position.y = Math.cos(time)
+  control.update();
 
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
