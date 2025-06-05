@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import gsap from "gsap";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { color } from "three/tsl";
+import { Wireframe } from "three/examples/jsm/Addons.js";
 
 const Canvas = document.querySelector("canvas.webgl");
 
@@ -57,8 +59,18 @@ scene.add(axesHelper);
 
 const control = new OrbitControls(camera, Canvas);
 control.enableDamping = true;
-control.enabled = false;
-control.listenToKeyEvents(Canvas);
+// control.enabled = false;
+
+const positions = new Float32Array([0, 0, 0, 0, 1, 0, 1, 0, 0]);
+const positionAttribute = new THREE.BufferAttribute(positions, 3);
+const positionGeometry = new THREE.BufferGeometry();
+positionGeometry.setAttribute("position", positionAttribute);
+const bufferGeometryMaterial = new THREE.MeshBasicMaterial({
+  color: "#ff0000",
+  wireframe: true,
+});
+const bufferMesh = new THREE.Mesh(positionGeometry, bufferGeometryMaterial);
+scene.add(bufferMesh);
 
 // const group = new THREE.Group();
 // const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -82,14 +94,17 @@ control.listenToKeyEvents(Canvas);
 // group.rotation.set(Math.PI / 3, Math.PI, 0);
 // scene.add(group);
 
-const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const mesh = new THREE.Mesh(boxGeometry, material);
-scene.add(mesh);
+// const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+// const material = new THREE.MeshBasicMaterial({
+//   color: 0x00ff00,
+//   wireframe: true,
+// });
+// const mesh = new THREE.Mesh(boxGeometry, material);
+// scene.add(mesh);
 
 // const clock = new THREE.Clock()
-gsap.to(mesh.position, { x: 2, delay: 1, direction: 1 });
-gsap.to(mesh.position, { x: 0, delay: 2, direction: 1 });
+// gsap.to(mesh.position, { x: 2, delay: 1, direction: 1 });
+// gsap.to(mesh.position, { x: 0, delay: 2, direction: 1 });
 
 const tick = () => {
   // const time = clock.getElapsedTime()
