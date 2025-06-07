@@ -1,8 +1,15 @@
 import * as THREE from "three";
 import gsap from "gsap";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { color } from "three/tsl";
-import { Wireframe } from "three/examples/jsm/Addons.js";
+import GUI from "lil-gui";
+
+const GlobalConfig = {};
+
+const debugGUI = new GUI({
+  title: "debug gui",
+  width: 300,
+});
+const boxGui = debugGUI.addFolder("Box");
 
 const Canvas = document.querySelector("canvas.webgl");
 
@@ -18,14 +25,6 @@ window.addEventListener("resize", () => {
   // 也就是 canvas 的css 大小  和  绘图的分辨率
   renderer.setSize(size.with, size.height);
   renderer.setPixelRatio(window.devicePixelRatio);
-});
-
-window.addEventListener("dblclick", () => {
-  if (!document.fullscreenElement) {
-    Canvas.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
 });
 
 const size = {
@@ -59,59 +58,72 @@ scene.add(axesHelper);
 
 const control = new OrbitControls(camera, Canvas);
 control.enableDamping = true;
-// control.enabled = false;
 
-const positions = new Float32Array([0, 0, 0, 0, 1, 0, 1, 0, 0]);
-const positionAttribute = new THREE.BufferAttribute(positions, 3);
-const positionGeometry = new THREE.BufferGeometry();
-positionGeometry.setAttribute("position", positionAttribute);
-const bufferGeometryMaterial = new THREE.MeshBasicMaterial({
-  color: "#ff0000",
-  wireframe: true,
+GlobalConfig.color = "#0edd1c";
+const BoxGeometry = new THREE.BoxGeometry(1, 1, 1, 1, 1, 1);
+const BoxMaterial = new THREE.MeshBasicMaterial({
+  color: GlobalConfig.color,
 });
-const bufferMesh = new THREE.Mesh(positionGeometry, bufferGeometryMaterial);
-scene.add(bufferMesh);
+const mesh = new THREE.Mesh(BoxGeometry, BoxMaterial);
+scene.add(mesh);
 
-// const group = new THREE.Group();
-// const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-// const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-// const mesh = new THREE.Mesh(boxGeometry, material);
-// group.add(mesh);
+boxGui.add(mesh.position, "z", 0, 2, 0.1);
+boxGui.add(BoxMaterial, "wireframe");
+boxGui.addColor(GlobalConfig, "color").onChange((val) => {
+  BoxMaterial.color.set(val);
+  console.log(val);
+});
+GlobalConfig.meshAnimate = () => {
+  gsap.to(mesh.position, { x: 2 });
+  gsap.to(mesh.rotation, { x: mesh.rotation.x + Math.PI * 2 });
+};
+boxGui.add(GlobalConfig, "meshAnimate");
 
-// const boxGeometry1 = new THREE.BoxGeometry(1, 1, 1);
-// const boxMaterial1 = new THREE.MeshBasicMaterial({ color: "red" });
-// const boxMesh1 = new THREE.Mesh(boxGeometry1, boxMaterial1);
-// boxMesh1.position.set(2, 0, 0);
-// const boxGeometry2 = new THREE.BoxGeometry(1, 1, 1);
-// const boxMaterial2 = new THREE.MeshBasicMaterial({ color: "blue" });
-// const boxMesh2 = new THREE.Mesh(boxGeometry2, boxMaterial2);
-// boxMesh2.position.set(-2, 0, 0);
-// group.add(boxMesh1);
-// group.add(boxMesh2);
-// group.position.set(0.5, 0, 0, 0);
-// group.scale.y = 2;
-// group.rotation.reorder("YXZ");
-// group.rotation.set(Math.PI / 3, Math.PI, 0);
-// scene.add(group);
+GlobalConfig.widthSegments = 1;
+GlobalConfig.heightSegments = 1;
+GlobalConfig.depthSegments = 1;
 
-// const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-// const material = new THREE.MeshBasicMaterial({
-//   color: 0x00ff00,
-//   wireframe: true,
-// });
-// const mesh = new THREE.Mesh(boxGeometry, material);
-// scene.add(mesh);
+boxGui.add(GlobalConfig, "widthSegments", 1, 4, 1).onFinishChange((val) => {
+  mesh.geometry.dispose();
+  GlobalConfig.widthSegments = val;
+  mesh.geometry = new THREE.BoxGeometry(
+    1,
+    1,
+    1,
+    val,
+    GlobalConfig.heightSegments,
+    GlobalConfig.depthSegments
+  );
+});
+boxGui.add(GlobalConfig, "heightSegments", 1, 4, 1).onFinishChange((val) => {
+  mesh.geometry.dispose();
+  GlobalConfig.heightSegments = val;
+  mesh.geometry = new THREE.BoxGeometry(
+    1,
+    1,
+    1,
+    GlobalConfig.widthSegments,
+    val,
+    GlobalConfig.depthSegments
+  );
+});
+boxGui.add(GlobalConfig, "depthSegments", 1, 4, 1).onFinishChange((val) => {
+  mesh.geometry.dispose();
+  GlobalConfig.depthSegments = val;
+  mesh.geometry = new THREE.BoxGeometry(
+    1,
+    1,
+    1,
+    GlobalConfig.widthSegments,
+    GlobalConfig.heightSegments,
+    val
+  );
+});
+boxGui.close();
 
-// const clock = new THREE.Clock()
-// gsap.to(mesh.position, { x: 2, delay: 1, direction: 1 });
-// gsap.to(mesh.position, { x: 0, delay: 2, direction: 1 });
+// boxGui.addFolder("boxItem");
 
 const tick = () => {
-  // const time = clock.getElapsedTime()
-  // console.log(time)
-  // mesh.rotation.z = time
-  // mesh.position.x = time
-  // mesh.position.y = Math.cos(time)
   control.update();
 
   renderer.render(scene, camera);
