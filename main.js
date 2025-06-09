@@ -3,6 +3,34 @@ import gsap from "gsap";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import GUI from "lil-gui";
 
+const TexturesManage = new THREE.LoadingManager();
+TexturesManage.onStart = () => {
+  console.log("onStart");
+};
+TexturesManage.onError = () => {
+  console.log("onError");
+};
+const TexturesLoader = new THREE.TextureLoader(TexturesManage);
+const color = TexturesLoader.load("/textures/door/color.jpg");
+// const color = TexturesLoader.load("/textures/checkerboard-8x8.png");
+// const color = TexturesLoader.load("/textures/checkerboard-1024x1024.png");
+
+// color.repeat.x = 2;
+// color.repeat.y = 3;
+// color.wrapS = THREE.RepeatWrapping;
+// color.wrapS = THREE.MirroredRepeatWrapping;
+// color.wrapT = THREE.RepeatWrapping;
+// color.wrapS = THREE.MirroredRepeatWrapping;
+
+// color.offset.x = 0.5;
+// color.offset.y = 0.5;
+
+// color.rotation = Math.PI / 4;
+// color.center.x = 0.5;
+// color.center.y = 0.5;
+
+color.magFilter = THREE.NearestFilter;
+
 const GlobalConfig = {};
 
 const debugGUI = new GUI({
@@ -44,9 +72,9 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.z = 3;
-camera.position.y = 1;
-camera.position.x = 1;
+camera.position.z = 0.7;
+camera.position.y = 0.7;
+camera.position.x = 0.7;
 scene.add(camera);
 // camera.lookAt(boxMesh1.position);
 renderer.setSize(size.with, size.height);
@@ -62,7 +90,8 @@ control.enableDamping = true;
 GlobalConfig.color = "#0edd1c";
 const BoxGeometry = new THREE.BoxGeometry(1, 1, 1, 1, 1, 1);
 const BoxMaterial = new THREE.MeshBasicMaterial({
-  color: GlobalConfig.color,
+  // color: GlobalConfig.color,
+  map: color,
 });
 const mesh = new THREE.Mesh(BoxGeometry, BoxMaterial);
 scene.add(mesh);
