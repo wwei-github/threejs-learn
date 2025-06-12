@@ -6,6 +6,7 @@ import GUI from "lil-gui";
 import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { FontLoader } from "three/examples/jsm/Addons.js";
 import { depth } from "three/tsl";
+import { RectAreaLightHelper } from "three/addons/helpers/RectAreaLightHelper.js";
 
 const debugGUI = new GUI({
   title: "debug gui",
@@ -54,8 +55,8 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.z = 2.5;
-camera.position.y = 0;
+camera.position.z = 5;
+camera.position.y = 3.5;
 camera.position.x = 0;
 scene.add(camera);
 renderer.setSize(size.with, size.height);
@@ -68,46 +69,55 @@ scene.add(axesHelper);
 const control = new OrbitControls(camera, Canvas);
 control.enableDamping = true;
 
-const TexturesLoader = new THREE.TextureLoader(TexturesManage);
-const matcap = TexturesLoader.load("/textures/matcaps/5.png");
+const material = new THREE.MeshStandardMaterial();
+const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+const boxMesh = new THREE.Mesh(boxGeometry, material);
+boxMesh.position.set(-1.5, 1.2, 0);
 
-const fontLoader = new FontLoader();
-fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
-  const textGeometry = new TextGeometry("Hello three.js", {
-    font,
-    size: 0.5,
-    depth: 0.1,
-    curveSegments: 12,
-    bevelEnabled: true,
-    bevelThickness: 0.02,
-    bevelSize: 0.03,
-    bevelOffset: 0,
-    bevelSegments: 100,
-  });
-  textGeometry.center();
-  const material = new THREE.MeshMatcapMaterial();
-  material.matcap = matcap;
-  const mesh = new THREE.Mesh(textGeometry, material);
-  scene.add(mesh);
+const torusGeometry = new THREE.TorusGeometry(0.5, 0.25);
+const torusMesh = new THREE.Mesh(torusGeometry, material);
+torusMesh.position.set(1.5, 1.2, 0);
 
-  const torus = new THREE.TorusGeometry(0.3, 0.2, 24, 15);
-  console.time("start");
-  for (let i = 0; i < 1000; i++) {
-    const torusMesh = new THREE.Mesh(torus, material);
+const planeGeometry = new THREE.PlaneGeometry(5, 5);
+const planeMesh = new THREE.Mesh(planeGeometry, material);
+planeMesh.rotation.x = -Math.PI / 2;
+scene.add(boxMesh, torusMesh, planeMesh);
 
-    torusMesh.position.x = (Math.random() - 0.5) * 10;
-    torusMesh.position.y = (Math.random() - 0.5) * 10;
-    torusMesh.position.z = (Math.random() - 0.5) * 10;
+const ambientLight = new THREE.AmbientLight("#ffffff", 0.3);
+scene.add(ambientLight);
 
-    const scale = Math.random();
-    torusMesh.scale.set(scale, scale, scale);
+const directionalLight = new THREE.DirectionalLight("#fea530", 0.7);
+directionalLight.position.set(2, 2, 2);
+scene.add(directionalLight);
+const directionalLightHelp = new THREE.DirectionalLightHelper(directionalLight);
+scene.add(directionalLightHelp);
 
-    scene.add(torusMesh);
-  }
-  console.timeEnd("start");
-});
+const hemisphereLight = new THREE.HemisphereLight("#0000ff", "#00ff00");
+hemisphereLight.position.y = 3;
+scene.add(hemisphereLight);
+const hemisphereLightHelp = new THREE.HemisphereLightHelper(
+  hemisphereLight,
+  0.3
+);
+scene.add(hemisphereLightHelp);
 
+const pointLight = new THREE.PointLight("#66c4fab9", 0.7);
+const pointLightHelp = new THREE.PointLightHelper(pointLight, 0.3);
+pointLight.position.set(-1, 2, -1);
+scene.add(pointLight, pointLightHelp);
 
+const rectAreaLight = new THREE.RectAreaLight("#ff00ff", 1, 1, 1);
+rectAreaLight.position.x = 2;
+rectAreaLight.position.z = 2;
+rectAreaLight.position.y = 1;
+rectAreaLight.lookAt(new THREE.Vector3());
+const rectAreaLightHelp = new RectAreaLightHelper(rectAreaLight);
+scene.add(rectAreaLight, rectAreaLightHelp);
+
+const spotLight = new THREE.SpotLight("#ffffff", 1, 5, 0.2);
+spotLight.position.set(-1, 1.5, 3);
+const spotLightHelp = new THREE.SpotLightHelper(spotLight, 0.5);
+scene.add(spotLight, spotLightHelp);
 
 const tick = () => {
   control.update();
