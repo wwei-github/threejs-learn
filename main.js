@@ -48,6 +48,8 @@ const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer({
   canvas: Canvas,
 });
+renderer.shadowMap.enabled = true;
+// renderer.shadowMap.type = THREE.PCFShadowMap;
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -69,55 +71,95 @@ scene.add(axesHelper);
 const control = new OrbitControls(camera, Canvas);
 control.enableDamping = true;
 
-const material = new THREE.MeshStandardMaterial();
+const material = new THREE.MeshStandardMaterial({
+  color: "#ffffff",
+  metalness: 0.3,
+  roughness: 0.7,
+});
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 const boxMesh = new THREE.Mesh(boxGeometry, material);
+boxMesh.castShadow = true;
 boxMesh.position.set(-1.5, 1.2, 0);
 
 const torusGeometry = new THREE.TorusGeometry(0.5, 0.25);
 const torusMesh = new THREE.Mesh(torusGeometry, material);
+torusMesh.castShadow = true;
 torusMesh.position.set(1.5, 1.2, 0);
 
-const planeGeometry = new THREE.PlaneGeometry(5, 5);
+const planeGeometry = new THREE.PlaneGeometry(10, 10);
 const planeMesh = new THREE.Mesh(planeGeometry, material);
 planeMesh.rotation.x = -Math.PI / 2;
+planeMesh.receiveShadow = true;
 scene.add(boxMesh, torusMesh, planeMesh);
 
-const ambientLight = new THREE.AmbientLight("#ffffff", 0.3);
-scene.add(ambientLight);
+// const ambientLight = new THREE.AmbientLight("#ffffff", 0.3);
+// scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight("#fea530", 0.7);
-directionalLight.position.set(2, 2, 2);
-scene.add(directionalLight);
+const directionalLight = new THREE.DirectionalLight("#ffffff", 1);
+directionalLight.position.set(2, 5, 5);
 const directionalLightHelp = new THREE.DirectionalLightHelper(directionalLight);
-scene.add(directionalLightHelp);
-
-const hemisphereLight = new THREE.HemisphereLight("#0000ff", "#00ff00");
-hemisphereLight.position.y = 3;
-scene.add(hemisphereLight);
-const hemisphereLightHelp = new THREE.HemisphereLightHelper(
-  hemisphereLight,
-  0.3
+directionalLightHelp.visible = false;
+directionalLight.castShadow = true;
+directionalLight.shadow.camera.near = 1;
+directionalLight.shadow.camera.far = 12;
+directionalLight.shadow.mapSize.set(1024, 1024);
+directionalLight.shadow.radius = 10;
+const directionalLightShadowCameraHelp = new THREE.CameraHelper(
+  directionalLight.shadow.camera
 );
-scene.add(hemisphereLightHelp);
+directionalLightShadowCameraHelp.visible = false;
+scene.add(
+  directionalLight,
+  directionalLightHelp,
+  directionalLightShadowCameraHelp
+);
 
-const pointLight = new THREE.PointLight("#66c4fab9", 0.7);
+// const hemisphereLight = new THREE.HemisphereLight("#0000ff", "#00ff00");
+// hemisphereLight.position.y = 3;
+// scene.add(hemisphereLight);
+// const hemisphereLightHelp = new THREE.HemisphereLightHelper(
+//   hemisphereLight,
+//   0.3
+// );
+// scene.add(hemisphereLightHelp);
+
+const pointLight = new THREE.PointLight("#ffffff", 7);
 const pointLightHelp = new THREE.PointLightHelper(pointLight, 0.3);
-pointLight.position.set(-1, 2, -1);
-scene.add(pointLight, pointLightHelp);
+pointLightHelp.visible = false;
+pointLight.position.set(-1, 5, -1);
+pointLight.castShadow = true;
+const pointLightShadowCameraHelp = new THREE.CameraHelper(
+  pointLight.shadow.camera
+);
+pointLightShadowCameraHelp.visible = false;
+scene.add(pointLight, pointLightHelp, pointLightShadowCameraHelp);
 
-const rectAreaLight = new THREE.RectAreaLight("#ff00ff", 1, 1, 1);
-rectAreaLight.position.x = 2;
-rectAreaLight.position.z = 2;
-rectAreaLight.position.y = 1;
-rectAreaLight.lookAt(new THREE.Vector3());
-const rectAreaLightHelp = new RectAreaLightHelper(rectAreaLight);
-scene.add(rectAreaLight, rectAreaLightHelp);
+// const rectAreaLight = new THREE.RectAreaLight("#ffffff", 1, 1, 1);
+// rectAreaLight.position.x = 2;
+// rectAreaLight.position.z = 2;
+// rectAreaLight.position.y = 1;
+// rectAreaLight.lookAt(new THREE.Vector3());
+// const rectAreaLightHelp = new RectAreaLightHelper(rectAreaLight);
+// scene.add(rectAreaLight, rectAreaLightHelp);
 
-const spotLight = new THREE.SpotLight("#ffffff", 1, 5, 0.2);
-spotLight.position.set(-1, 1.5, 3);
-const spotLightHelp = new THREE.SpotLightHelper(spotLight, 0.5);
-scene.add(spotLight, spotLightHelp);
+const spotLight = new THREE.SpotLight("#ffffff", 10, 20, Math.PI / 4);
+spotLight.position.set(-2, 5, 2);
+spotLight.castShadow = true;
+spotLight.shadow.mapSize.set(1024, 1024);
+spotLight.shadow.camera.near = 1;
+spotLight.shadow.camera.far = 20;
+spotLight.target.position.set(0, 0, 0); // 指向目标必须设置！
+scene.add(spotLight.target);
+scene.add(spotLight);
+
+const spotLightHelp = new THREE.SpotLightHelper(spotLight);
+const spotLightShadowCameraHelp = new THREE.CameraHelper(
+  spotLight.shadow.camera
+);
+spotLightHelp.visible = false;
+spotLightShadowCameraHelp.visible = false;
+scene.add(spotLightHelp, spotLightShadowCameraHelp);
+
 
 const tick = () => {
   control.update();
